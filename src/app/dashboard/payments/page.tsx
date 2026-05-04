@@ -57,7 +57,7 @@ export default function PaymentsPage() {
                 <tr key={payment.id}>
                   <td>#{payment.id}</td>
                   <td>{payment.member_id}</td>
-                  <td>${payment.amount}</td>
+                  <td>₹{payment.amount}</td>
                   <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
                   <td>{payment.status}</td>
                   <td>

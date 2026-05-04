@@ -29,7 +29,7 @@ export default function DashboardOverview() {
         
         <div className={`glass-panel ${styles.statCard}`}>
           <h3 className={styles.statLabel}>Monthly Revenue</h3>
-          <p className={styles.statValue}>${stats.revenue}</p>
+          <p className={styles.statValue}>₹{stats.revenue}</p>
         </div>
       </div>
       
