@@ -1,0 +1,22 @@
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.tableContainer {
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
