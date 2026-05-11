@@ -5,6 +5,7 @@ import styles from '../sharedTable.module.css';
 
 export default function MembersPage() {
   const [members, setMembers] = useState([]);
+  const [availablePlans, setAvailablePlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'all'>('active');
@@ -14,13 +15,30 @@ export default function MembersPage() {
     name: '',
     email: '',
     phone: '',
-    status: 1
+    status: 1,
+    plan_ids: [] as number[]
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     fetchMembers();
+    fetchPlans();
   }, []);
+
+  const fetchPlans = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:5000/api/plans', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAvailablePlans(data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const fetchMembers = async () => {
     try {
@@ -77,7 +95,7 @@ export default function MembersPage() {
       if (res.ok) {
         setIsAddModalOpen(false);
         setEditId(null);
-        setFormData({ name: '', email: '', phone: '', status: 1 });
+        setFormData({ name: '', email: '', phone: '', status: 1, plan_ids: [] });
         fetchMembers();
       } else {
         console.error('Failed to save member');
@@ -93,7 +111,8 @@ export default function MembersPage() {
       name: member.name,
       email: member.email,
       phone: member.phone,
-      status: member.status !== undefined ? member.status : 1
+      status: member.status !== undefined ? member.status : 1,
+      plan_ids: member.plan_ids || []
     });
     setErrors({});
     setIsAddModalOpen(true);
@@ -101,7 +120,7 @@ export default function MembersPage() {
 
   const handleAddNew = () => {
     setEditId(null);
-    setFormData({ name: '', email: '', phone: '', status: 1 });
+    setFormData({ name: '', email: '', phone: '', status: 1, plan_ids: [] });
     setErrors({});
     setIsAddModalOpen(true);
   };
@@ -166,6 +185,7 @@ export default function MembersPage() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Assigned Plans</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -177,6 +197,26 @@ export default function MembersPage() {
                   <td>{member.name}</td>
                   <td>{member.email}</td>
                   <td>{member.phone}</td>
+                  <td>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {member.plan_names && member.plan_names.length > 0 ? (
+                        member.plan_names.map((name: string, i: number) => (
+                          <span key={i} style={{ 
+                            fontSize: '0.75rem', 
+                            background: 'rgba(99, 102, 241, 0.1)', 
+                            color: 'var(--primary)',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            border: '1px solid rgba(99, 102, 241, 0.2)'
+                          }}>
+                            {name}
+                          </span>
+                        ))
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>No plans</span>
+                      )}
+                    </div>
+                  </td>
                   <td>
                     <span style={{
                       padding: '4px 8px',
@@ -247,6 +287,48 @@ export default function MembersPage() {
                 />
                 {errors.phone && <span className="error-text">{errors.phone}</span>}
               </div>
+
+              <div className="form-group">
+                <label>Assign Plans</label>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+                  gap: '12px',
+                  background: 'rgba(15, 23, 42, 0.4)',
+                  padding: '16px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-color)',
+                  maxHeight: '200px',
+                  overflowY: 'auto'
+                }}>
+                  {availablePlans.map((plan: any) => (
+                    <label key={plan.id} style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      color: formData.plan_ids.includes(plan.id) ? 'var(--text-main)' : 'var(--text-muted)',
+                      transition: 'color 0.2s'
+                    }}>
+                      <input 
+                        type="checkbox"
+                        checked={formData.plan_ids.includes(plan.id)}
+                        onChange={(e) => {
+                          const newIds = e.target.checked 
+                            ? [...formData.plan_ids, plan.id]
+                            : formData.plan_ids.filter(id => id !== plan.id);
+                          setFormData({ ...formData, plan_ids: newIds });
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      {plan.name} (₹{plan.price})
+                    </label>
+                  ))}
+                  {availablePlans.length === 0 && <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No plans available. Create plans first!</div>}
+                </div>
+              </div>
+
               <div className="form-group">
                 <label>Status</label>
                 <div className="switch-container">
